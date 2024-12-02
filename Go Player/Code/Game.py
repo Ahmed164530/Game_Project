@@ -15,7 +15,8 @@ class GoGame:
         self.current_player = -1  
         self.player_color = -1  
         self.captured_stones = {1: 0, -1: 0}  
-        self.heuristic_func = heuristic_func  
+        self.heuristic_func = heuristic_func
+        self.move_log = []   
     
     def is_valid_move(self, x, y):
         return 0 <= x < self.board_size and 0 <= y < self.board_size and self.board[x, y] == 0
@@ -23,7 +24,8 @@ class GoGame:
     def make_move(self, x, y):
         if self.is_valid_move(x, y):
             self.board[x, y] = self.current_player
-            self.capture_stones(x, y)  
+            self.capture_stones(x, y)
+            self.move_log.append((self.current_player, x, y))  # تسجيل الحركة  
             self.current_player *= -1  
             return True
         return False
@@ -153,8 +155,6 @@ class GoGame:
 
         return len(player_moves) - len(opponent_moves)
 
-
-
     def minimax(self, board, depth, maximizing_player):
         """Basic Minimax algorithm without pruning."""
         if depth == 0 or self.game.is_game_over(board):
@@ -264,7 +264,11 @@ class GoGame:
                 if beta <= alpha:
                     break  # Alpha cut-off
             return min_eval
+
+    def pass_turn(self):
         
+        self.move_log.append((self.current_player, 'pass', 'pass'))
+        self.current_player *= -1   
 
 class GoGameGUI:
     def __init__(self, root):
@@ -297,6 +301,7 @@ class GoGameGUI:
         self.menu.add_command(label="Load Game", command=self.load_game)
         self.menu.add_command(label="Change Board Size", command=self.change_board_size)
         self.menu.add_command(label="Select AI Strategy", command=self.select_ai_strategy)
+        self.menu.add_command(label="Pass", command=self.pass_turn)
         self.menu.add_command(label="Resign", command=self.resign_game)
         self.menu.add_command(label="Quit", command=self.root.quit)
         self.draw_board()
@@ -317,7 +322,14 @@ class GoGameGUI:
             messagebox.showinfo("AI Strategy Selected", f"AI will now use: {self.ai_strategy}")
         else:
             messagebox.showerror("Invalid Choice", "Please choose a valid strategy.")
-    
+
+    def create_controls(self):
+        self.score_label = tk.Label(self.root, text="White: 0 | Black: 0")
+        self.score_label.pack()
+        
+        self.pass_button = tk.Button(self.root, text="Pass", command=self.pass_turn)
+        self.pass_button.pack()
+
     def ai_move(self):
         move = None
         if self.ai_strategy == "Minimax":
@@ -336,8 +348,6 @@ class GoGameGUI:
             if self.game.is_game_over():
                 self.end_game()
 
-
- 
     def evaluate_board(self, board):
         """The board evaluation based on captured stones and surrounded squares, with the addition of Komi points for the white player."""
         black_score = self.calculate_score(board, -1)  
@@ -444,6 +454,11 @@ class GoGameGUI:
         winner = "Black" if self.game.current_player == 1 else "White"
         messagebox.showinfo("Resignation", f"{winner} wins by resignation.")
         self.root.quit()
+
+    def pass_turn(self):
+        self.game.pass_turn()
+        self.draw_board()
+        self.ai_turn()
 
 if __name__ == "__main__":
     root = tk.Tk()
