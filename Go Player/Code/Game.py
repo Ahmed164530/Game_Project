@@ -280,7 +280,6 @@ class GoGameGUI:
         self.white_stone_color = "white"
         self.ai_strategy = "Minimax"
         
-        
         self.canvas = tk.Canvas(root, width=600, height=600, bg=self.bg_color)
         self.canvas.pack()
         self.canvas.bind("<Button-1>", self.click)
@@ -388,28 +387,50 @@ class GoGameGUI:
         return dfs(x, y)
 
     def click(self, event):
-        x, y = (event.y - 30) // 30, (event.x - 30) // 30
-        if self.game.make_move(x, y):
-            self.draw_board()
-            if self.game.is_game_over():
-                self.end_game()
-            else:
-                self.ai_turn()
+        margin = 30  
+        board_length = 540  
+        cell_size = board_length // (self.board_size - 1)  
+
+        x = round((event.y - margin) / cell_size)
+        y = round((event.x - margin) / cell_size)
+        
+        if 0 <= x < self.board_size and 0 <= y < self.board_size:
+            if self.game.make_move(x, y):
+                self.draw_board()
+                if self.game.is_game_over():
+                    self.end_game()
+                else:
+                    self.ai_turn()
 
     def draw_board(self):
         self.canvas.delete("all")
+        margin = 30  
+        board_length = 540  
+        cell_size = board_length // (self.board_size - 1)  
+
         for i in range(self.board_size):
-            self.canvas.create_line(30, 30 + i * 30, 570, 30 + i * 30, fill="black")
-            self.canvas.create_line(30 + i * 30, 30, 30 + i * 30, 570, fill="black")
+            offset = margin + i * cell_size
+            self.canvas.create_line(margin, offset, margin + board_length, offset, fill="black")
+            self.canvas.create_line(offset, margin, offset, margin + board_length, fill="black")
 
         for x in range(self.board_size):
             for y in range(self.board_size):
                 if self.game.board[x, y] == 1:
-                    self.canvas.create_oval(30 + y * 30 - 10, 30 + x * 30 - 10,
-                                            30 + y * 30 + 10, 30 + x * 30 + 10, fill=self.white_stone_color)
+                    self.canvas.create_oval(
+                        margin + y * cell_size - cell_size // 3,
+                        margin + x * cell_size - cell_size // 3,
+                        margin + y * cell_size + cell_size // 3,
+                        margin + x * cell_size + cell_size // 3,
+                        fill=self.white_stone_color
+                    )
                 elif self.game.board[x, y] == -1:
-                    self.canvas.create_oval(30 + y * 30 - 10, 30 + x * 30 - 10,
-                                            30 + y * 30 + 10, 30 + x * 30 + 10, fill=self.black_stone_color)
+                    self.canvas.create_oval(
+                        margin + y * cell_size - cell_size // 3,
+                        margin + x * cell_size - cell_size // 3,
+                        margin + y * cell_size + cell_size // 3,
+                        margin + x * cell_size + cell_size // 3,
+                        fill=self.black_stone_color
+                    )
 
         self.score_label.config(text=f"White: {self.game.captured_stones[-1]} | Black: {self.game.captured_stones[1]}")
 
