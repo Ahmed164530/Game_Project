@@ -251,7 +251,7 @@ class GoGame:
                 max_eval = max(max_eval, eval)
                 alpha = max(alpha, eval)
                 if beta <= alpha:
-                    break  # Beta cut-off
+                    break  
             return max_eval
         else:
             min_eval = float('inf')
@@ -262,7 +262,7 @@ class GoGame:
                 min_eval = min(min_eval, eval)
                 beta = min(beta, eval)
                 if beta <= alpha:
-                    break  # Alpha cut-off
+                    break  
             return min_eval
 
     def pass_turn(self):
