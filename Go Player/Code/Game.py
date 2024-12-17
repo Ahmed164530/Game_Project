@@ -18,6 +18,7 @@ class GoGame:
         self.heuristic_func = heuristic_func
         self.move_log = []   
     
+
     def is_valid_move(self, x, y):
         return 0 <= x < self.board_size and 0 <= y < self.board_size and self.board[x, y] == 0
 
@@ -25,7 +26,7 @@ class GoGame:
         if self.is_valid_move(x, y):
             self.board[x, y] = self.current_player
             self.capture_stones(x, y)
-            self.move_log.append((self.current_player, x, y))  # تسجيل الحركة  
+            self.move_log.append((self.current_player, x, y))   
             self.current_player *= -1  
             return True
         return False
@@ -123,11 +124,13 @@ class GoGame:
     
     def heuristic_func_1(self, board, maximizing_player):
         """
-          First heuristic function: Count the number of pieces for the player
-          (maximizing_player = 1 for the maximizing player, -1 for the minimizing player).
+        First heuristic function: Counts the difference in the number of pieces 
+        between the current player (maximizing_player) and the opponent.
+        maximizing_player = 1 for Black, -1 for White.
         """
-        opponent_piece = -1 if maximizing_player else 1
-    
+        player_piece = maximizing_player
+        opponent_piece = -maximizing_player
+
         player_count = 0
         opponent_count = 0
 
@@ -139,21 +142,21 @@ class GoGame:
                     opponent_count += 1
 
         return player_count - opponent_count
+
     
     def heuristic_func_2(self, board, maximizing_player):
         """
         Second heuristic function: Count the number of possible moves for the player.
         (maximizing_player = 1 for the maximizing player, -1 for the minimizing player).
         """
-        player_piece = 1 if maximizing_player else -1
-        opponent_piece = -1 if maximizing_player else 1
 
+        possible_moves = self.get_possible_moves()
 
-        player_moves = self.game.get_possible_moves_for_player(board, player_piece)
-        opponent_moves = self.game.get_possible_moves_for_player(board, opponent_piece)
-
+        player_moves = [(x, y) for x, y in possible_moves if board[x, y] == maximizing_player]
+        opponent_moves = [(x, y) for x, y in possible_moves if board[x, y] == -maximizing_player]
 
         return len(player_moves) - len(opponent_moves)
+
 
     def minimax(self, board, depth, maximizing_player):
         """Basic Minimax algorithm without pruning."""
@@ -308,13 +311,12 @@ class GoGameGUI:
     def select_ai_strategy(self):
         strategy = simpledialog.askstring(
             "AI Strategy",
-            "Choose AI strategy:\n1. Minimax\n2. Minimax with Alpha-Beta\n3. Minimax with Heuristic 1\n4. Minimax with Heuristic 2"
+            "Choose AI strategy:\n1. Easy\n2. Medium\n3. Hard"
         )
         strategy_map = {
-            "1": "Minimax",
-            "2": "Minimax with Alpha-Beta",
-            "3": "Minimax with Heuristic 1",
-            "4": "Minimax with Heuristic 2"
+            "1": "Minimax with Alpha-Beta",
+            "2": "Minimax with Heuristic 1",
+            "3": "Minimax with Heuristic 2"
         }
         if strategy in strategy_map:
             self.ai_strategy = strategy_map[strategy]
@@ -331,13 +333,11 @@ class GoGameGUI:
 
     def ai_move(self):
         move = None
-        if self.ai_strategy == "Minimax":
-            move = self.game.minimax(self.game.board, 3, True)
-        elif self.ai_strategy == "Minimax with Alpha-Beta":
+        if self.ai_strategy == "Easy":
             move = self.game.minimax_alpha_beta(self.game.board, 3, -float('inf'), float('inf'), True)
-        elif self.ai_strategy == "Minimax with Heuristic 1":
+        elif self.ai_strategy == "Medium":
             move = self.game.minimax_with_heuristic_1_alpha_beta(self.game.board, 3, True)
-        elif self.ai_strategy == "Minimax with Heuristic 2":
+        elif self.ai_strategy == "Hard":
             move = self.game.minimax_with_heuristic_2_alpha_beta(self.game.board, 3, True)
 
         if move:
@@ -370,7 +370,7 @@ class GoGameGUI:
         return captured_stones + enclosed_territory
     
     def is_enclosed(self, board, x, y, player):
-        """التحقق مما إذا كانت المربعات محاصرة بالكامل بواسطة لاعب معين."""
+        """Check if the squares are completely surrounded by a specific player."""
         visited = set()
 
         def dfs(x, y):
@@ -431,7 +431,6 @@ class GoGameGUI:
                         margin + x * cell_size + cell_size // 3,
                         fill=self.black_stone_color
                     )
-
         self.score_label.config(text=f"White: {self.game.captured_stones[-1]} | Black: {self.game.captured_stones[1]}")
 
     def ai_turn(self):
@@ -480,6 +479,7 @@ class GoGameGUI:
         self.game.pass_turn()
         self.draw_board()
         self.ai_turn()
+
 
 if __name__ == "__main__":
     root = tk.Tk()
