@@ -4,7 +4,6 @@ import numpy as np
 import json
 import random
 
-
 BOARD_SIZES = [9, 13, 19]
 
 KOMI = 6.5  
@@ -164,8 +163,6 @@ class GoGame:
 
     def minimax(self, board, depth, maximizing_player):
         """Basic Minimax algorithm without pruning."""
-        
-
         if depth == 0 or self.is_game_over(board):
             return self.evaluate_board(board)
 
@@ -173,7 +170,7 @@ class GoGame:
         if maximizing_player:
             max_eval = -float('inf')
             for move in possible_moves:
-                board_copy = np.copy(board)
+                board_copy = board.copy()
                 self.make_move(board_copy, move, 1)  # 1 for maximizing player
                 eval = self.minimax(board_copy, depth - 1, False)
                 max_eval = max(max_eval, eval)
@@ -181,7 +178,7 @@ class GoGame:
         else:
             min_eval = float('inf')
             for move in possible_moves:
-                board_copy = np.copy(board)
+                board_copy = board.copy()
                 self.make_move(board_copy, move, -1)  # -1 for minimizing player
                 eval = self.minimax(board_copy, depth - 1, True)
                 min_eval = min(min_eval, eval)
@@ -196,7 +193,7 @@ class GoGame:
         if maximizing_player:
             max_eval = -float('inf')
             for move in possible_moves:
-                board_copy = np.copy(board)
+                board_copy = board.copy()
                 self.make_move(board_copy, move, 1)  # 1 for maximizing player
                 eval = self.minimax_alpha_beta(board_copy, depth - 1, alpha, beta, False)
                 max_eval = max(max_eval, eval)
@@ -207,7 +204,7 @@ class GoGame:
         else:
             min_eval = float('inf')
             for move in possible_moves:
-                board_copy = np.copy(board)
+                board_copy = board.copy()
                 self.make_move(board_copy, move, -1)  # -1 for minimizing player
                 eval = self.minimax_alpha_beta(board_copy, depth - 1, alpha, beta, True)
                 min_eval = min(min_eval, eval)
@@ -225,7 +222,7 @@ class GoGame:
         if maximizing_player:
             max_eval = -float('inf')
             for move in possible_moves:
-                board_copy = np.copy(board)
+                board_copy = board.copy()
                 self.make_move(board_copy, move)
                 eval = self.minimax_with_heuristic_1_alpha_beta(board_copy, depth - 1, alpha, beta, False)
                 max_eval = max(max_eval, eval)
@@ -236,7 +233,7 @@ class GoGame:
         else:
             min_eval = float('inf')
             for move in possible_moves:
-                board_copy = np.copy(board)
+                board_copy = board.copy()
                 self.make_move(board_copy, move)
                 eval = self.minimax_with_heuristic_1_alpha_beta(board_copy, depth - 1, alpha, beta, True)
                 min_eval = min(min_eval, eval)
@@ -254,7 +251,7 @@ class GoGame:
         if maximizing_player:
             max_eval = -float('inf')
             for move in possible_moves:
-                board_copy = np.copy(board)
+                board_copy = board.copy()
                 self.make_move(board_copy, move)
                 eval = self.minimax_with_heuristic_2_alpha_beta(board_copy, depth - 1, alpha, beta, False)
                 max_eval = max(max_eval, eval)
@@ -265,7 +262,7 @@ class GoGame:
         else:
             min_eval = float('inf')
             for move in possible_moves:
-                board_copy = np.copy(board)
+                board_copy = board.copy()
                 self.make_move(board_copy, move)
                 eval = self.minimax_with_heuristic_2_alpha_beta(board_copy, depth - 1, alpha, beta, True)
                 min_eval = min(min_eval, eval)
@@ -395,7 +392,7 @@ class GoGameGUI:
         if maximizing_player:
             max_eval = -float('inf')
             for move in possible_moves:
-                board_copy = np.copy(board)
+                board_copy = board.copy()
                 self.game.make_move(board_copy, move, 1)  # 1 for maximizing player
                 eval = self.minimax(board_copy, depth - 1, False)
                 max_eval = max(max_eval, eval)
@@ -403,7 +400,7 @@ class GoGameGUI:
         else:
             min_eval = float('inf')
             for move in possible_moves:
-                board_copy = np.copy(board)
+                board_copy = board.copy()
                 self.game.make_move(board_copy, move, -1)  # -1 for minimizing player
                 eval = self.minimax(board_copy, depth - 1, True)
                 min_eval = min(min_eval, eval)
@@ -418,7 +415,7 @@ class GoGameGUI:
         if maximizing_player:
             max_eval = -float('inf')
             for move in possible_moves:
-                board_copy = np.copy(board)
+                board_copy = board.copy()
                 self.game.make_move(board_copy, move, 1)  # 1 for maximizing player
                 eval = self.minimax_alpha_beta(board_copy, depth - 1, alpha, beta, False)
                 max_eval = max(max_eval, eval)
@@ -429,7 +426,7 @@ class GoGameGUI:
         else:
             min_eval = float('inf')
             for move in possible_moves:
-                board_copy = np.copy(board)
+                board_copy = board.copy()
                 self.game.make_move(board_copy, move, -1)  # -1 for minimizing player
                 eval = self.minimax_alpha_beta(board_copy, depth - 1, alpha, beta, True)
                 min_eval = min(min_eval, eval)
@@ -447,7 +444,7 @@ class GoGameGUI:
         if maximizing_player:
             max_eval = -float('inf')
             for move in possible_moves:
-                board_copy = np.copy(board)
+                board_copy = board.copy()
                 self.make_move(board_copy, move)
                 eval = self.minimax_with_heuristic_1_alpha_beta(board_copy, depth - 1, alpha, beta, False)
                 max_eval = max(max_eval, eval)
@@ -458,7 +455,7 @@ class GoGameGUI:
         else:
             min_eval = float('inf')
             for move in possible_moves:
-                board_copy = np.copy(board)
+                board_copy = board.copy()
                 self.make_move(board_copy, move)
                 eval = self.minimax_with_heuristic_1_alpha_beta(board_copy, depth - 1, alpha, beta, True)
                 min_eval = min(min_eval, eval)
@@ -476,7 +473,7 @@ class GoGameGUI:
         if maximizing_player:
             max_eval = -float('inf')
             for move in possible_moves:
-                board_copy = np.copy(board)
+                board_copy = board.copy()
                 self.make_move(board_copy, move)
                 eval = self.minimax_with_heuristic_2_alpha_beta(board_copy, depth - 1, alpha, beta, False)
                 max_eval = max(max_eval, eval)
@@ -487,7 +484,7 @@ class GoGameGUI:
         else:
             min_eval = float('inf')
             for move in possible_moves:
-                board_copy = np.copy(board)
+                board_copy = board.copy()
                 self.make_move(board_copy, move)
                 eval = self.minimax_with_heuristic_2_alpha_beta(board_copy, depth - 1, alpha, beta, True)
                 min_eval = min(min_eval, eval)
@@ -576,10 +573,10 @@ class GoGameGUI:
         def dfss(x, y):
             if (x, y) in visited or x < 0 or y < 0 or x >= self.board_size or y >= self.board_size:
                 return True
-            if board[x, y] == -player:  
-                return True  
-            if board[x, y] == 0:  
-                return False  
+            if board[x, y] == -player:  # إذا كانت الخانة تحتوي على حجر من لون الخصم
+                return True  # لا تعيد False، بل تستمر في البحث
+            if board[x, y] == 0:  # إذا كانت الخانة فارغة
+                return False  # تعيد False، لأن المنطقة ليست محاطة بالكامل
 
             visited.add((x, y))
             return all(dfss(nx, ny) for nx, ny in [(x-1, y), (x+1, y), (x, y-1), (x, y+1)])
