@@ -5,7 +5,6 @@ import json
 import random
 
 BOARD_SIZES = [9, 13, 19]
-
 KOMI = 6.5  
 
 class GoGame:
@@ -16,11 +15,32 @@ class GoGame:
         self.player_color = -1  
         self.captured_stones = {1: 0, -1: 0}  
         self.heuristic_func = heuristic_func
-        self.move_log = []   
-    
+        self.move_log = []
+        self.ai_strategy = "Minimax with Alpha-Beta"
 
     def is_valid_move(self, x, y):
-        return 0 <= x < self.board_size and 0 <= y < self.board_size and self.board[x, y] == 0
+        if not (0 <= x < self.board_size and 0 <= y < self.board_size):
+            return False
+    
+        if self.board[x, y] != 0:
+            return False
+
+        enemy_color = -self.current_player
+        surrounded = True
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < self.board_size and 0 <= ny < self.board_size:
+                if self.board[nx, ny] == 0:  
+                    surrounded = False
+                    break
+                elif self.board[nx, ny] != enemy_color:  
+                    surrounded = False
+                    break
+
+        if surrounded:
+            return False
+
+        return True
 
     def make_move(self, x, y):
         if self.is_valid_move(x, y):
@@ -121,6 +141,45 @@ class GoGame:
                 best_move = random.choice(possible_moves)
             return best_move
         return None
+
+    def evaluate_board(self, board):
+        """The board evaluation based on captured stones and surrounded squares, with the addition of Komi points for the white player."""
+        black_score = self.calculate_score(board, -1)  
+        white_score = self.calculate_score(board, 1)   
+    
+        white_score += KOMI
+
+        return black_score - white_score
+
+    def calculate_score(self, board, player):
+        """Calculating the score based on captured stones and surrounded squares."""
+        captured_stones = self.captured_stones[player]
+        enclosed_territory = 0
+    
+        
+        for x in range(self.board_size):
+            for y in range(self.board_size):
+                if board[x, y] == 0 and self.is_enclosed(board, x, y, player):
+                    enclosed_territory += 1
+
+        return captured_stones + enclosed_territory
+
+    def is_enclosed(self, board, x, y, player):
+        """Check if the squares are completely surrounded by a specific player."""
+        visited = set()
+
+        def dfs(x, y):
+            if (x, y) in visited or x < 0 or y < 0 or x >= self.board_size or y >= self.board_size:
+                return True
+            if board[x, y] == -player:  
+                  return False
+            if board[x, y] == player:  
+                  return True
+        
+            visited.add((x, y))
+            return all(dfs(nx, ny) for nx, ny in [(x-1, y), (x+1, y), (x, y-1), (x, y+1)])
+
+        return dfs(x, y)
     
     def heuristic_func_1(self, board, maximizing_player):
         """
@@ -142,8 +201,7 @@ class GoGame:
                     opponent_count += 1
 
         return player_count - opponent_count
-
-    
+  
     def heuristic_func_2(self, board, maximizing_player):
         """
         Second heuristic function: Count the number of possible moves for the player.
@@ -157,18 +215,17 @@ class GoGame:
 
         return len(player_moves) - len(opponent_moves)
 
-
     def minimax(self, board, depth, maximizing_player):
         """Basic Minimax algorithm without pruning."""
-        if depth == 0 or self.game.is_game_over(board):
+        if depth == 0 or self.is_game_over(board):
             return self.evaluate_board(board)
 
-        possible_moves = self.game.get_possible_moves(board)
+        possible_moves = self.get_possible_moves(board)
         if maximizing_player:
             max_eval = -float('inf')
             for move in possible_moves:
                 board_copy = board.copy()
-                self.game.make_move(board_copy, move, 1)  # 1 for maximizing player
+                self.make_move(board_copy, move, 1)  # 1 for maximizing player
                 eval = self.minimax(board_copy, depth - 1, False)
                 max_eval = max(max_eval, eval)
             return max_eval
@@ -176,22 +233,22 @@ class GoGame:
             min_eval = float('inf')
             for move in possible_moves:
                 board_copy = board.copy()
-                self.game.make_move(board_copy, move, -1)  # -1 for minimizing player
+                self.make_move(board_copy, move, -1)  # -1 for minimizing player
                 eval = self.minimax(board_copy, depth - 1, True)
                 min_eval = min(min_eval, eval)
             return min_eval
         
     def minimax_alpha_beta(self, board, depth, alpha, beta, maximizing_player):
         """Minimax algorithm with Alpha-Beta Pruning."""
-        if depth == 0 or self.game.is_game_over(board):
+        if depth == 0 or self.is_game_over(board):
             return self.evaluate_board(board)
 
-        possible_moves = self.game.get_possible_moves(board)
+        possible_moves = self.get_possible_moves(board)
         if maximizing_player:
             max_eval = -float('inf')
             for move in possible_moves:
                 board_copy = board.copy()
-                self.game.make_move(board_copy, move, 1)  # 1 for maximizing player
+                self.make_move(board_copy, move, 1)  # 1 for maximizing player
                 eval = self.minimax_alpha_beta(board_copy, depth - 1, alpha, beta, False)
                 max_eval = max(max_eval, eval)
                 alpha = max(alpha, eval)
@@ -202,7 +259,7 @@ class GoGame:
             min_eval = float('inf')
             for move in possible_moves:
                 board_copy = board.copy()
-                self.game.make_move(board_copy, move, -1)  # -1 for minimizing player
+                self.make_move(board_copy, move, -1)  # -1 for minimizing player
                 eval = self.minimax_alpha_beta(board_copy, depth - 1, alpha, beta, True)
                 min_eval = min(min_eval, eval)
                 beta = min(beta, eval)
@@ -281,7 +338,7 @@ class GoGameGUI:
         self.bg_color = "#D4B483"
         self.black_stone_color = "black"
         self.white_stone_color = "white"
-        self.ai_strategy = "Minimax"
+        self.ai_strategy = "Minimax with Alpha-Beta"
         
         self.canvas = tk.Canvas(root, width=600, height=600, bg=self.bg_color)
         self.canvas.pack()
@@ -307,7 +364,7 @@ class GoGameGUI:
         self.menu.add_command(label="Resign", command=self.resign_game)
         self.menu.add_command(label="Quit", command=self.root.quit)
         self.draw_board()
-    
+
     def select_ai_strategy(self):
         strategy = simpledialog.askstring(
             "AI Strategy",
@@ -324,13 +381,6 @@ class GoGameGUI:
         else:
             messagebox.showerror("Invalid Choice", "Please choose a valid strategy.")
 
-    def create_controls(self):
-        self.score_label = tk.Label(self.root, text="White: 0 | Black: 0")
-        self.score_label.pack()
-        
-        self.pass_button = tk.Button(self.root, text="Pass", command=self.pass_turn)
-        self.pass_button.pack()
-
     def ai_move(self):
         move = None
         if self.ai_strategy == "Easy":
@@ -346,6 +396,13 @@ class GoGameGUI:
             self.draw_board()
             if self.game.is_game_over():
                 self.end_game()
+
+    def create_controls(self):
+        self.score_label = tk.Label(self.root, text="White: 0 | Black: 0")
+        self.score_label.pack()
+        
+        self.pass_button = tk.Button(self.root, text="Pass", command=self.pass_turn)
+        self.pass_button.pack()
 
     def evaluate_board(self, board):
         """The board evaluation based on captured stones and surrounded squares, with the addition of Komi points for the white player."""
@@ -433,6 +490,12 @@ class GoGameGUI:
                     )
         self.score_label.config(text=f"White: {self.game.captured_stones[-1]} | Black: {self.game.captured_stones[1]}")
 
+    def end_game(self):
+        black_score, white_score = self.game.get_score()
+        winner = "Black" if black_score > white_score else "White"
+        messagebox.showinfo("Game Over", f"Winner: {winner}\nBlack: {black_score} | White: {white_score}")
+        self.root.quit()
+
     def ai_turn(self):
         move = self.game.ai_move()
         if move:
@@ -441,12 +504,6 @@ class GoGameGUI:
             self.draw_board()
             if self.game.is_game_over():
                 self.end_game()
-
-    def end_game(self):
-        black_score, white_score = self.game.get_score()
-        winner = "Black" if black_score > white_score else "White"
-        messagebox.showinfo("Game Over", f"Winner: {winner}\nBlack: {black_score} | White: {white_score}")
-        self.root.quit()
 
     def save_game(self):
         filename = filedialog.asksaveasfilename(defaultextension=".json")
@@ -479,7 +536,6 @@ class GoGameGUI:
         self.game.pass_turn()
         self.draw_board()
         self.ai_turn()
-
 
 if __name__ == "__main__":
     root = tk.Tk()
